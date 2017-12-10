@@ -1,4 +1,4 @@
-var boot = function() {
+var boot = function(game) {
 };
 
 boot.prototype = {

@@ -3,8 +3,14 @@ var preload = function(game){
 preload.prototype = {
 	preload: function(){
 		var loadingBar = this.add.sprite(game.width/2, game.height/2, "loading");//x,y,key
-		loadingBar.anchor.setTo(0.5);//把按鈕的錨點x設在中心
-		game.load.setPreloadSprite(loadingBar);//設定預加載精靈物件
+		loadingBar.anchor.setTo(0.5,0.5);//把按鈕的錨點x,y設在中心
+
+		// Set a Sprite to be a "preload" sprite by passing it to this method.
+		// A "preload" sprite will have its width or height crop adjusted based on the percentage of the loader in real-time.
+		// This allows you to easily make loading bars for games.
+		// The sprite will automatically be made visible when calling this.
+		game.load.setPreloadSprite(loadingBar);
+		
 		// load title screen
 		game.load.image("title", "assets/sprites/title-screen.png");
 		game.load.image("enter", "assets/sprites/press-enter-text.png");
@@ -31,6 +37,6 @@ preload.prototype = {
 		game.load.audio("chest", ["assets/sound/chest.ogg", "assets/sound/chest.mp3"]);
 	},
 	create: function(){
-		// this.game.state.start("titleScreen");
+		this.game.state.start("titleScreen");
 	}
 }
