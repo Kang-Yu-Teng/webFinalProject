@@ -33,7 +33,7 @@ titleScreen.prototype = {
             this.title2.anchor.setTo(0.5);
             this.title.destroy();
         } else {
-            // this.game.state.start('playGame');
+            this.game.state.start('playGame');
         }		
 	},
 	blinkText: function(){
