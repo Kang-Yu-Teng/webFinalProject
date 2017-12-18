@@ -1,4 +1,11 @@
-window.onload = function() {
+// require('phaser');
+// require('./boot.js');
+// require('./preload.js');
+// require('./titleScreen.js');
+// require('./playGame.js');
+// require('./gameOver.js');
+// require('./globalVar.js');
+window.onload = function () {
 	game = new Phaser.Game(gameWidth, gameHeight, Phaser.AUTO, "");
 	game.state.add('boot', boot);
 	game.state.add('preload', preload);
@@ -9,5 +16,3 @@ window.onload = function() {
 
 	game.state.start("boot");
 }
-
-
