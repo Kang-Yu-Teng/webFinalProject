@@ -1,4 +1,3 @@
-module.exports = 'preload';
 var preload = function (game) {};
 preload.prototype = {
 	preload: function () {
@@ -40,3 +39,5 @@ preload.prototype = {
 		this.game.state.start("titleScreen");
 	}
 }
+
+module.exports = preload;

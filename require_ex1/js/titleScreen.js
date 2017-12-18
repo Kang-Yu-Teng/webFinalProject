@@ -1,4 +1,3 @@
-module.exports = 'titleScreen';
 var titleScreen = function (game) {};
 titleScreen.prototype = {
     create: function () {
@@ -51,3 +50,4 @@ titleScreen.prototype = {
         middleground.tilePosition.x -= 0.4;
     }
 }
+module.exports = titleScreen;

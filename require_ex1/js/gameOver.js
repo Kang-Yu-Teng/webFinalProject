@@ -1,4 +1,3 @@
-module.exports = 'gameOver';
 var gameOver = function (game) {};
 gameOver.prototype = {
     create: function () {
@@ -34,3 +33,4 @@ gameOver.prototype = {
     }
 
 }
+module.exports = gameOver;

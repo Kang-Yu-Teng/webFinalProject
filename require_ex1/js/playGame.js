@@ -1,4 +1,10 @@
-module.exports = 'playGame';
+var Player = require('./player.js');
+var Bee = require('./bee.js');
+var Plant = require('./plant.js');
+var Slug = require('./slug.js');
+var Chest = require('./chest.js');
+var Star = require('./star.js');
+var EnemyDeath = require('./enemyDeath.js');
 
 var playGame = function (game) {};
 playGame.prototype = {
@@ -505,3 +511,4 @@ playGame.prototype = {
 
     }
 }
+module.exports = playGame;

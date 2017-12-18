@@ -35,3 +35,5 @@ Slug.prototype.turnAround = function () {
     }
 
 }
+
+module.exports = Slug;

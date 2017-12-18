@@ -1,4 +1,6 @@
-module.exports = 'boot';
+// module.exports = function (game) {};
+
+
 var boot = function (game) {};
 
 //prototype代表說以此function:boot 所建立的物件都有prototype內的屬性 
@@ -14,3 +16,4 @@ boot.prototype = {
 		this.game.state.start("preload");
 	}
 }
+module.exports = boot;

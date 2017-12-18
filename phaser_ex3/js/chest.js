@@ -13,7 +13,7 @@ Chest = function (game, x, y, audioChest) {
 
 }
 Chest.prototype = Object.create(Phaser.Sprite.prototype);
-Chest.prototype.constructor = Slug;
+Chest.prototype.constructor = Chest;
 Chest.prototype.open = function () {
     this.opened = true;
     this.animations.play("open");

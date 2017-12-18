@@ -68,17 +68,17 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 // require('phaser');
-__webpack_require__(1);
-__webpack_require__(2);
-__webpack_require__(3);
-__webpack_require__(4);
-__webpack_require__(5);
+var boot = __webpack_require__(1);
+var preload = __webpack_require__(2);
+var titleScreen = __webpack_require__(3);
+var playGame = __webpack_require__(4);
+var gameOver = __webpack_require__(12);
 // require('./globalVar.js');
 window.onload = function () {
 	game = new Phaser.Game(gameWidth, gameHeight, Phaser.AUTO, "");
+	// console.log(boot);
 	game.state.add('boot', boot);
 	game.state.add('preload', preload);
-
 	game.state.add('titleScreen', titleScreen);
 	game.state.add('playGame', playGame);
 	game.state.add('gameOver', gameOver);
@@ -90,7 +90,9 @@ window.onload = function () {
 /* 1 */
 /***/ (function(module, exports) {
 
-module.exports = 'boot';
+// module.exports = function (game) {};
+
+
 var boot = function (game) {};
 
 //prototype代表說以此function:boot 所建立的物件都有prototype內的屬性 
@@ -106,12 +108,12 @@ boot.prototype = {
 		this.game.state.start("preload");
 	}
 }
+module.exports = boot;
 
 /***/ }),
 /* 2 */
 /***/ (function(module, exports) {
 
-module.exports = 'preload';
 var preload = function (game) {};
 preload.prototype = {
 	preload: function () {
@@ -154,11 +156,12 @@ preload.prototype = {
 	}
 }
 
+module.exports = preload;
+
 /***/ }),
 /* 3 */
 /***/ (function(module, exports) {
 
-module.exports = 'titleScreen';
 var titleScreen = function (game) {};
 titleScreen.prototype = {
     create: function () {
@@ -211,12 +214,19 @@ titleScreen.prototype = {
         middleground.tilePosition.x -= 0.4;
     }
 }
+module.exports = titleScreen;
 
 /***/ }),
 /* 4 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
-module.exports = 'playGame';
+var Player = __webpack_require__(5);
+var Bee = __webpack_require__(6);
+var Plant = __webpack_require__(7);
+var Slug = __webpack_require__(8);
+var Chest = __webpack_require__(9);
+var Star = __webpack_require__(10);
+var EnemyDeath = __webpack_require__(11);
 
 var playGame = function (game) {};
 playGame.prototype = {
@@ -723,12 +733,330 @@ playGame.prototype = {
 
     }
 }
+module.exports = playGame;
 
 /***/ }),
 /* 5 */
 /***/ (function(module, exports) {
 
-module.exports = 'gameOver';
+Player = function (game, x, y) {
+    x *= 16;
+    y *= 16;
+    this.initX = x;
+    this.initY = y;
+    this.health = 3;
+    //針對梯子上的狀態
+    this.onLadder = false;
+    //
+    Phaser.Sprite.call(this, game, x, y, "atlas", "player-idle/player-idle-1");
+
+    this.anchor.setTo(0.5);
+    game.physics.arcade.enable(this);
+    this.body.gravity.y = 300;
+    //
+    this.body.setSize(12, 26, 10, 6);
+
+    //add animations
+    //
+    var animVel = 12;
+    this.animations.add('idle', Phaser.Animation.generateFrameNames('player-idle/player-idle-', 1, 9, '', 0), animVel, true);
+    this.animations.add('skip', Phaser.Animation.generateFrameNames('player-skip/player-skip-', 1, 8, '', 0), animVel, true);
+    this.animations.add('jump', Phaser.Animation.generateFrameNames('player-jump/player-jump-', 1, 4, '', 0), animVel, true);
+    this.animations.add('fall', Phaser.Animation.generateFrameNames('player-fall/player-fall-', 1, 4, '', 0), animVel, true);
+    this.animations.add('duck', Phaser.Animation.generateFrameNames('player-duck/player-duck-', 1, 4, '', 0), animVel, true);
+    this.animations.add('hurt', Phaser.Animation.generateFrameNames('player-hurt/player-hurt-', 1, 2, '', 0), animVel, true);
+    this.animations.add('climb', Phaser.Animation.generateFrameNames('player-climb/player-climb-', 1, 4, '', 0), animVel, true);
+    this.animations.play("idle");
+    this.kind = "player";
+    //將此物件指定給唯一一名的玩家
+    player = this;
+}
+Player.prototype = Object.create(Phaser.Sprite.prototype);
+Player.prototype.constructor = Player;
+Player.prototype.update = function () {
+    if (this.onLadder) {
+        this.body.gravity.y = 0;
+    } else {
+        this.body.gravity.y = 300;
+    }
+    this.onLadder = false;
+
+}
+Player.prototype.reset = function () {
+    this.x = this.initX;
+    this.y = this.initY;
+    this.health = 3;
+    this.body.velocity.y = 0;
+    this.alive = true;
+    this.animations.play('idle');
+    hurtFlag = false;
+
+}
+Player.prototype.death = function () {
+    this.alive = false;
+    this.body.velocity.x = 0;
+    this.body.velocity.y = -400;
+}
+
+module.exports = Player;
+
+/***/ }),
+/* 6 */
+/***/ (function(module, exports) {
+
+var Bee = function (game, x, y, distance, horizontal) {
+
+    // Enemy.apply(this);
+    // Enemy.call(this);
+
+    x *= 16;
+    y *= 16;
+
+    Phaser.Sprite.call(this, game, x, y, "atlas", "bee/bee-1");
+    this.animations.add('fly', Phaser.Animation.generateFrameNames('bee/bee-', 1, 8, '', 0), 15, true);
+    this.animations.play("fly");
+    this.anchor.setTo(0.5);
+    game.physics.arcade.enable(this);
+    this.body.setSize(15, 18, 11, 13);
+    this.initX = this.x;
+    this.initY = this.y;
+    this.distance = distance;
+    this.speed = 40;
+    this.horizontal = horizontal;
+    if (this.horizontal) {
+        this.body.velocity.x = this.speed;
+        this.body.velocity.y = 0;
+    } else {
+        this.body.velocity.x = 0;
+        this.body.velocity.y = this.speed;
+    }
+
+}
+Bee.prototype = Object.create(Phaser.Sprite.prototype);
+Bee.prototype.constructor = Bee;
+Bee.prototype.update = function () {
+    if (this.horizontal) {
+        this.horizontalMove();
+    } else {
+        this.verticalMove();
+    }
+
+}
+Bee.prototype.verticalMove = function () {
+    if (this.body.velocity.y > 0 && this.y > this.initY + this.distance) {
+        this.body.velocity.y = -40;
+    } else if (this.body.velocity.y < 0 && this.y < this.initY - this.distance) {
+        this.body.velocity.y = 40;
+    }
+    if (this.x > player.x) {
+        this.scale.x = 1;
+    } else {
+        this.scale.x = -1;
+    }
+}
+Bee.prototype.horizontalMove = function () {
+    if (this.body.velocity.x > 0 && this.x > this.initX + this.distance) {
+        this.body.velocity.x = -40;
+    } else if (this.body.velocity.x < 0 && this.x < this.initX - this.distance) {
+        this.body.velocity.x = 40;
+    }
+    if (this.body.velocity.x < 0) {
+        this.scale.x = 1;
+    } else {
+        this.scale.x = -1;
+    }
+}
+
+
+
+module.exports = Bee;
+
+/***/ }),
+/* 7 */
+/***/ (function(module, exports) {
+
+// plant
+
+Plant = function (game, x, y) {
+	x *= 16;
+	y *= 16;
+
+	Phaser.Sprite.call(this, game, x, y, "atlas", "piranha-plant/piranha-plant-1");
+	this.animations.add('idle', Phaser.Animation.generateFrameNames('piranha-plant/piranha-plant-', 1, 5, '', 0), 10, true);
+	this.animations.add('attack', Phaser.Animation.generateFrameNames('piranha-plant-attack/piranha-plant-attack-', 1, 4, '', 0), 10, true);
+	this.animations.play("idle");
+	this.anchor.setTo(0.5);
+	game.physics.arcade.enable(this);
+	this.body.gravity.y = 500;
+	//this.body.setSize(18, 29, 21, 16);
+	this.body.setSize(61, 29, 0, 16);
+}
+Plant.prototype = Object.create(Phaser.Sprite.prototype);
+Plant.prototype.constructor = Plant;
+Plant.prototype.update = function () {
+
+	if (this.x > player.x) {
+		this.scale.x = 1;
+	} else {
+		this.scale.x = -1;
+
+	}
+
+	var distance = game.physics.arcade.distanceBetween(this, player);
+
+	if (distance < 65) {
+		this.animations.play("attack");
+
+	} else {
+		this.animations.play("idle");
+	}
+
+}
+
+module.exports = Plant;
+
+/***/ }),
+/* 8 */
+/***/ (function(module, exports) {
+
+var Slug = function (game, x, y) {
+    x *= 16;
+    y *= 16;
+    Phaser.Sprite.call(this, game, x, y, "atlas", "slug/slug-1");
+    this.animations.add('crawl', Phaser.Animation.generateFrameNames('slug/slug-', 1, 4, '', 0), 10, true);
+    this.animations.play("crawl");
+    this.anchor.setTo(0.5);
+    game.physics.arcade.enable(this);
+    this.body.setSize(20, 11, 7, 10);
+    this.body.gravity.y = 500;
+    this.speed = 40;
+    this.body.velocity.x = this.speed;
+    this.body.bounce.x = 1;
+    this.kind = "slug";
+
+}
+Slug.prototype = Object.create(Phaser.Sprite.prototype);
+Slug.prototype.constructor = Slug;
+Slug.prototype.update = function () {
+    if (this.body.velocity.x < 0) {
+        this.scale.x = 1;
+
+    } else {
+        this.scale.x = -1;
+
+    }
+}
+Slug.prototype.turnAround = function () {
+    if (this.body.velocity.x > 0) {
+        this.body.velocity.x = -this.speed;
+        this.x -= 5;
+    } else {
+        this.body.velocity.x = this.speed;
+        this.x += 5;
+    }
+
+}
+
+module.exports = Slug;
+
+/***/ }),
+/* 9 */
+/***/ (function(module, exports) {
+
+Chest = function (game, x, y, audioChest) {
+    x *= 16;
+    y *= 16;
+    this.opened = false;
+    Phaser.Sprite.call(this, game, x, y, "atlas", "chest/chest-1");
+    this.animations.add('open', ["chest/chest-2"], 0, false);
+
+    this.anchor.setTo(0.5);
+    game.physics.arcade.enable(this);
+    this.body.setSize(19, 12, 9, 13);
+    this.body.gravity.y = 500;
+    this.kind = "chest";
+
+}
+Chest.prototype = Object.create(Phaser.Sprite.prototype);
+// Chest.prototype.constructor = Slug;
+Chest.prototype.constructor = Chest;
+Chest.prototype.open = function () {
+    this.opened = true;
+    this.animations.play("open");
+
+    //spawn stars
+    for (var i = 0; i <= 5; i++) {
+        var temp = new Star(game, this.x / 16, (this.y - 15) / 16);
+        game.add.existing(temp);
+        loot_group.add(temp);
+    }
+
+}
+
+module.exports = Chest;
+
+/***/ }),
+/* 10 */
+/***/ (function(module, exports) {
+
+Star = function (game, x, y) {
+    x *= 16;
+    y *= 16;
+    this.able = false;
+    this.bounceCount = 0;
+    Phaser.Sprite.call(this, game, x, y, "atlas", "star/star-1");
+    this.animations.add('spin', Phaser.Animation.generateFrameNames('star/star-', 1, 4, '', 0), 10, true);
+    this.animations.play("spin");
+    this.anchor.setTo(0.5);
+    game.physics.arcade.enable(this);
+
+    this.body.velocity.y = game.rnd.realInRange(150, 220);
+    this.body.velocity.x = game.rnd.realInRange(-30, 31);
+    this.body.drag.set(10);
+    this.body.bounce.set(0.8);
+    this.body.gravity.y = 500;
+
+    this.kind = "star";
+
+}
+Star.prototype = Object.create(Phaser.Sprite.prototype);
+Star.prototype.constructor = Star;
+Star.prototype.update = function () {
+
+    if (this.body.onFloor()) {
+        this.bounceCount++;
+
+    }
+    if (this.bounceCount >= 3) {
+        this.able = true;
+    }
+}
+
+module.exports = Star;
+
+/***/ }),
+/* 11 */
+/***/ (function(module, exports) {
+
+EnemyDeath = function (game, x, y) {
+    Phaser.Sprite.call(this, game, x, y, "atlas", "enemy-death/enemy-death-1");
+    this.anchor.setTo(0.5);
+    var anim = this.animations.add("death", Phaser.Animation.generateFrameNames("enemy-death/enemy-death-", 1, 6, '', 0), 18, false);
+    this.animations.play("death");
+    anim.onComplete.add(function () {
+        this.kill();
+    }, this);
+}
+
+EnemyDeath.prototype = Object.create(Phaser.Sprite.prototype);
+EnemyDeath.prototype.constructor = EnemyDeath;
+
+module.exports = EnemyDeath;
+
+/***/ }),
+/* 12 */
+/***/ (function(module, exports) {
+
 var gameOver = function (game) {};
 gameOver.prototype = {
     create: function () {
@@ -764,6 +1092,7 @@ gameOver.prototype = {
     }
 
 }
+module.exports = gameOver;
 
 /***/ })
 /******/ ]);

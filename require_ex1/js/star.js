@@ -30,3 +30,5 @@ Star.prototype.update = function () {
         this.able = true;
     }
 }
+
+module.exports = Star;

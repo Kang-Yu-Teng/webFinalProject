@@ -14,7 +14,7 @@ Player = function (game, x, y) {
     this.body.gravity.y = 300;
     //
     this.body.setSize(12, 26, 10, 6);
-    
+
     //add animations
     //
     var animVel = 12;
@@ -56,3 +56,5 @@ Player.prototype.death = function () {
     this.body.velocity.x = 0;
     this.body.velocity.y = -400;
 }
+
+module.exports = Player;
