@@ -15,14 +15,18 @@ preload.prototype = {
 		game.load.image("enter", "assets/sprites/press-enter-text.png");
 		game.load.image("credits", "assets/sprites/credits-text.png");
 		game.load.image("instructions", "assets/sprites/instructions.png");
+		// load and game screen
 		game.load.image("gameover", "assets/sprites/game-over.png");
 		// environment
 		game.load.image("background", "assets/environment/background.png");
 		game.load.image("middleground", "assets/environment/middleground.png");
-		// tileset
-		game.load.image("tileset", "assets/environment/tileset.png");
 		game.load.image("collisions", "assets/environment/collisions.png");
-		game.load.tilemap("map", "assets/maps/map.json", null, Phaser.Tilemap.TILED_JSON);
+
+		//map
+		game.load.image("tileset", "assets/environment/tileset.png");
+		game.load.tilemap("map", "assets/maps/test.json", null, Phaser.Tilemap.TILED_JSON);
+		//
+
 		// atlas
 		game.load.atlasJSONArray("atlas", "assets/atlas/atlas.png", "assets/atlas/atlas.json");
 		game.load.atlasJSONArray("atlas-props", "assets/atlas/atlas-props.png", "assets/atlas/atlas-props.json");
@@ -34,6 +38,7 @@ preload.prototype = {
 		game.load.audio("jump", ["assets/sound/jump.ogg", "assets/sound/jump.mp3"]);
 		game.load.audio("star", ["assets/sound/star.ogg", "assets/sound/star.mp3"]);
 		game.load.audio("chest", ["assets/sound/chest.ogg", "assets/sound/chest.mp3"]);
+
 	},
 	create: function () {
 		this.game.state.start("titleScreen");

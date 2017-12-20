@@ -101,10 +101,13 @@ boot.prototype = {
 		this.game.load.image("loading", "assets/sprites/loading.png");
 	},
 	create: function () {
+		//have the game centered horizontally
 		game.scale.pageAlignHorizontally = true;
 		game.scale.pageAlignVertically = true;
+		//scaling
 		game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
 		game.renderer.renderSession.roundPixels = true; //模糊關閉，精靈對象的呈現使用整數位置，如果false則會在像素間嘗試呈現而模糊
+
 		this.game.state.start("preload");
 	}
 }
@@ -131,14 +134,18 @@ preload.prototype = {
 		game.load.image("enter", "assets/sprites/press-enter-text.png");
 		game.load.image("credits", "assets/sprites/credits-text.png");
 		game.load.image("instructions", "assets/sprites/instructions.png");
+		// load and game screen
 		game.load.image("gameover", "assets/sprites/game-over.png");
 		// environment
 		game.load.image("background", "assets/environment/background.png");
 		game.load.image("middleground", "assets/environment/middleground.png");
-		// tileset
-		game.load.image("tileset", "assets/environment/tileset.png");
 		game.load.image("collisions", "assets/environment/collisions.png");
-		game.load.tilemap("map", "assets/maps/map.json", null, Phaser.Tilemap.TILED_JSON);
+
+		//map
+		game.load.image("tileset", "assets/environment/tileset.png");
+		game.load.tilemap("map", "assets/maps/test.json", null, Phaser.Tilemap.TILED_JSON);
+		//
+
 		// atlas
 		game.load.atlasJSONArray("atlas", "assets/atlas/atlas.png", "assets/atlas/atlas.json");
 		game.load.atlasJSONArray("atlas-props", "assets/atlas/atlas-props.png", "assets/atlas/atlas-props.json");
@@ -150,6 +157,7 @@ preload.prototype = {
 		game.load.audio("jump", ["assets/sound/jump.ogg", "assets/sound/jump.mp3"]);
 		game.load.audio("star", ["assets/sound/star.ogg", "assets/sound/star.mp3"]);
 		game.load.audio("chest", ["assets/sound/chest.ogg", "assets/sound/chest.mp3"]);
+
 	},
 	create: function () {
 		this.game.state.start("titleScreen");
@@ -241,9 +249,9 @@ playGame.prototype = {
         //建立地圖磚
         this.createTileMap(lv);
         //增添裝飾用景物
-        this.decorWorld();
+        // this.decorWorld();
         //添加裝飾用景物，應該是前景
-        this.decorWorldFront();
+        // this.decorWorldFront();
         //添加群組
         this.createGroups();
         //綁定按鍵
@@ -251,15 +259,15 @@ playGame.prototype = {
         //建立玩家
         this.createPlayer(2, 9);
         //建立星星
-        this.createStars();
+        // this.createStars();
         //建立蘿蔔
-        this.createCarrots();
+        // this.createCarrots();
         //設定相機跟隨對象
         this.camFollow(player);
-        //生成hud
+        //生成hud(血條物件)
         this.createHud();
         //生成物件群
-        this.populate();
+        // this.populate();
 
     },
     update: function () {
@@ -441,51 +449,62 @@ playGame.prototype = {
         if (levelNum == 1) {
             levelNum = "";
         }
+
         //tilemap
         //選擇地圖（應該是由相關地圖編輯器生成）
+        //tilemap那個參數是給當時load時指定出的名字，不是檔名
         globalMap = game.add.tilemap("map" + levelNum);
-        //設置磚圖
-        globalMap.addTilesetImage("collisions");
-        globalMap.addTilesetImage("tileset");
+        //設置磚圖，應該對應當初編輯地圖時所使用的原始圖檔
+        globalMap.addTilesetImage("sunny-land", "tileset");
 
-        //建立碰撞層
-        this.layer_collisions = globalMap.createLayer("Collisions Layer");
-        // this.layer_collisions.visible = false;
+        //建立圖層
+        //注意，那個層名要對應在tiled內設定的層名
 
-        //建立主層
-        this.layer = globalMap.createLayer("Main Layer");
+        this.layer = globalMap.createLayer("touched");
+
 
         // collisions
-        //根據陣列磚類設置碰撞磚
-        globalMap.setCollision([1]);
+        //根據陣列磚類設置碰撞磚，磚類在Tiled編輯器中能看到ID
+        // globalMap.setCollision([1]);
+        globalMap.setCollision(collisionTiledID);
+
         //位所有磚類=2的設置上側碰撞(此為自訂函式)
-        this.setTopCollisionTiles(2);
+        this.setTopCollisionTiles(ladderTopID);
 
         // specific tiles for enemies
         //設置對應磚類而碰撞觸發的函式
-        globalMap.setTileIndexCallback(3, this.enemyCollide, this);
-        globalMap.setTileIndexCallback(4, this.triggerLadder, this);
-        globalMap.setTileIndexCallback(5, this.killZone, this);
-        globalMap.setTileIndexCallback(8, this.exitZone, this);
+        // globalMap.setTileIndexCallback(3, this.enemyCollide, this);
+        globalMap.setTileIndexCallback(ladderID, this.triggerLadder, this);
+        globalMap.setTileIndexCallback(ladderTopID, this.triggerLadder, this);
+        globalMap.setTileIndexCallback(deadBlockID, this.killZone, this);
+        // globalMap.setTileIndexCallback(8, this.exitZone, this);
 
         //Sets the world size to match the size of this layer.
         this.layer.resizeWorld();
-        this.layer_collisions.resizeWorld();
-        //設置碰撞區可見/非可見
-        this.layer_collisions.visible = false;
-        // this.layer_collisions.debug = true;		
+        // this.layer_collisions.resizeWorld();
+
     },
-    //為glovalMap的範圍內所有磚塊設置上側碰撞
+    //為glovalMap的範圍內所有磚塊為所有等於titleIndex設置上側碰撞
     setTopCollisionTiles: function (tileIndex) {
         var x, y, tile;
         for (x = 0; x < globalMap.width; x++) {
             for (y = 1; y < globalMap.height; y++) {
                 tile = globalMap.getTile(x, y);
                 if (tile !== null) {
-                    if (tile.index == tileIndex) {
-                        tile.setCollision(false, false, true, false);
+                    //判斷陣列或是一般值後開始設定對應的ID
+                    if (Array.isArray(tileIndex) == true) {
+                        tileIndex.every(
+                            function (value, index, array) {
+                                if (tile.index == value) {
+                                    tile.setCollision(false, false, true, false);
+                                }
+                            }
+                        );
+                    } else {
+                        if (tile.index == tileIndex) {
+                            tile.setCollision(false, false, true, false);
+                        }
                     }
-
                 }
             }
         }

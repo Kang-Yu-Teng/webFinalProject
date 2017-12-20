@@ -14,3 +14,8 @@ var carrots_group;
 var stars_group;
 var hurtFlag = false;
 var score = 0;
+
+var collisionTiledID = [148 + 1];
+var deadBlockID = [1 + 1];
+var ladderTopID = [3 + 1];
+var ladderID = [23 + 1];

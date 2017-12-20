@@ -19,9 +19,9 @@ playGame.prototype = {
         //建立地圖磚
         this.createTileMap(lv);
         //增添裝飾用景物
-        this.decorWorld();
+        // this.decorWorld();
         //添加裝飾用景物，應該是前景
-        this.decorWorldFront();
+        // this.decorWorldFront();
         //添加群組
         this.createGroups();
         //綁定按鍵
@@ -29,15 +29,15 @@ playGame.prototype = {
         //建立玩家
         this.createPlayer(2, 9);
         //建立星星
-        this.createStars();
+        // this.createStars();
         //建立蘿蔔
-        this.createCarrots();
+        // this.createCarrots();
         //設定相機跟隨對象
         this.camFollow(player);
-        //生成hud
+        //生成hud(血條物件)
         this.createHud();
         //生成物件群
-        this.populate();
+        // this.populate();
 
     },
     update: function () {
@@ -219,51 +219,62 @@ playGame.prototype = {
         if (levelNum == 1) {
             levelNum = "";
         }
+
         //tilemap
         //選擇地圖（應該是由相關地圖編輯器生成）
+        //tilemap那個參數是給當時load時指定出的名字，不是檔名
         globalMap = game.add.tilemap("map" + levelNum);
-        //設置磚圖
-        globalMap.addTilesetImage("collisions");
-        globalMap.addTilesetImage("tileset");
+        //設置磚圖，應該對應當初編輯地圖時所使用的原始圖檔
+        globalMap.addTilesetImage("sunny-land", "tileset");
 
-        //建立碰撞層
-        this.layer_collisions = globalMap.createLayer("Collisions Layer");
-        // this.layer_collisions.visible = false;
+        //建立圖層
+        //注意，那個層名要對應在tiled內設定的層名
 
-        //建立主層
-        this.layer = globalMap.createLayer("Main Layer");
+        this.layer = globalMap.createLayer("touched");
+
 
         // collisions
-        //根據陣列磚類設置碰撞磚
-        globalMap.setCollision([1]);
+        //根據陣列磚類設置碰撞磚，磚類在Tiled編輯器中能看到ID
+        // globalMap.setCollision([1]);
+        globalMap.setCollision(collisionTiledID);
+
         //位所有磚類=2的設置上側碰撞(此為自訂函式)
-        this.setTopCollisionTiles(2);
+        this.setTopCollisionTiles(ladderTopID);
 
         // specific tiles for enemies
         //設置對應磚類而碰撞觸發的函式
-        globalMap.setTileIndexCallback(3, this.enemyCollide, this);
-        globalMap.setTileIndexCallback(4, this.triggerLadder, this);
-        globalMap.setTileIndexCallback(5, this.killZone, this);
-        globalMap.setTileIndexCallback(8, this.exitZone, this);
+        // globalMap.setTileIndexCallback(3, this.enemyCollide, this);
+        globalMap.setTileIndexCallback(ladderID, this.triggerLadder, this);
+        globalMap.setTileIndexCallback(ladderTopID, this.triggerLadder, this);
+        globalMap.setTileIndexCallback(deadBlockID, this.killZone, this);
+        // globalMap.setTileIndexCallback(8, this.exitZone, this);
 
         //Sets the world size to match the size of this layer.
         this.layer.resizeWorld();
-        this.layer_collisions.resizeWorld();
-        //設置碰撞區可見/非可見
-        this.layer_collisions.visible = false;
-        // this.layer_collisions.debug = true;		
+        // this.layer_collisions.resizeWorld();
+
     },
-    //為glovalMap的範圍內所有磚塊設置上側碰撞
+    //為glovalMap的範圍內所有磚塊為所有等於titleIndex設置上側碰撞
     setTopCollisionTiles: function (tileIndex) {
         var x, y, tile;
         for (x = 0; x < globalMap.width; x++) {
             for (y = 1; y < globalMap.height; y++) {
                 tile = globalMap.getTile(x, y);
                 if (tile !== null) {
-                    if (tile.index == tileIndex) {
-                        tile.setCollision(false, false, true, false);
+                    //判斷陣列或是一般值後開始設定對應的ID
+                    if (Array.isArray(tileIndex) == true) {
+                        tileIndex.every(
+                            function (value, index, array) {
+                                if (tile.index == value) {
+                                    tile.setCollision(false, false, true, false);
+                                }
+                            }
+                        );
+                    } else {
+                        if (tile.index == tileIndex) {
+                            tile.setCollision(false, false, true, false);
+                        }
                     }
-
                 }
             }
         }
