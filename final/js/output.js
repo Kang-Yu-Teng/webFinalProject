@@ -257,8 +257,9 @@ var EnemyDeath = __webpack_require__(11);
 
 var playGame = function playGame(game) {};
 playGame.prototype = {
-    var: lv = 1,
+    // var: lv = 1,
     create: function create() {
+        this.lv = 1;
         //建立背景
         this.createBackground();
         //循環背景音樂
@@ -266,7 +267,7 @@ playGame.prototype = {
         //加入音效
         this.addAudios();
         //建立地圖磚
-        this.createTileMap(lv);
+        this.createTileMap(this.lv);
         //增添裝飾用景物
         // this.decorWorld();
         //添加裝飾用景物，應該是前景
@@ -763,7 +764,7 @@ module.exports = playGame;
 "use strict";
 
 
-Player = function Player(game, x, y) {
+var Player = function Player(game, x, y) {
     x *= 16;
     y *= 16;
     this.initX = x;
@@ -901,7 +902,7 @@ module.exports = Bee;
 
 // plant
 
-Plant = function Plant(game, x, y) {
+var Plant = function Plant(game, x, y) {
 	x *= 16;
 	y *= 16;
 
@@ -986,7 +987,7 @@ module.exports = Slug;
 "use strict";
 
 
-Chest = function Chest(game, x, y, audioChest) {
+var Chest = function Chest(game, x, y, audioChest) {
     x *= 16;
     y *= 16;
     this.opened = false;
@@ -1023,7 +1024,7 @@ module.exports = Chest;
 "use strict";
 
 
-Star = function Star(game, x, y) {
+var Star = function Star(game, x, y) {
     x *= 16;
     y *= 16;
     this.able = false;
@@ -1063,7 +1064,7 @@ module.exports = Star;
 "use strict";
 
 
-EnemyDeath = function EnemyDeath(game, x, y) {
+var EnemyDeath = function EnemyDeath(game, x, y) {
     Phaser.Sprite.call(this, game, x, y, "atlas", "enemy-death/enemy-death-1");
     this.anchor.setTo(0.5);
     var anim = this.animations.add("death", Phaser.Animation.generateFrameNames("enemy-death/enemy-death-", 1, 6, '', 0), 18, false);

@@ -1,4 +1,4 @@
-Star = function (game, x, y) {
+var Star = function (game, x, y) {
     x *= 16;
     y *= 16;
     this.able = false;

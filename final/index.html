@@ -36,6 +36,11 @@
 	</style>
 	<link href="https://fonts.googleapis.com/css?family=VT323" rel="stylesheet">
 	<meta name="viewport" content="initial-scale=1 user-scalable=0" />
+	<script src="https://www.gstatic.com/firebasejs/4.8.1/firebase-app.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/4.8.1/firebase-auth.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/4.8.1/firebase-database.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/4.8.1/firebase-firestore.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/4.8.1/firebase-messaging.js"></script>
 
 </head>
 
@@ -45,24 +50,22 @@
 	<script src="js/phaser.js"></script>
 	<script src="js/globalVar.js"></script>
 
-	<!-- <script src="js/enemyDeath.js"></script>
-	<script src="js/plant.js"></script>
-	<script src="js/slug.js"></script>
-	<script src="js/chest.js"></script>
-	<script src="js/star.js"></script>
-	<script src="js/bee.js"></script>
-	<script src="js/player.js"></script>
-
-	<script src="js/gameOver.js"></script>
-	<script src="js/playGame.js"></script>
-	<script src="js/titleScreen.js"></script>
-	<script src="js/preload.js"></script>
-	<script src="js/boot.js"></script>
-	<script src="js/main.js"></script> -->
-
 	<script src="js/output.js"></script>
 
 
 </body>
+<script src="https://www.gstatic.com/firebasejs/4.8.1/firebase.js"></script>
+<script>
+	// Initialize Firebase
+	var config = {
+		apiKey: "AIzaSyD47cEGPxHO5ddXtiUUX4zUqgv-C9IPRp8",
+		authDomain: "marioaccount-3f175.firebaseapp.com",
+		databaseURL: "https://marioaccount-3f175.firebaseio.com",
+		projectId: "marioaccount-3f175",
+		storageBucket: "",
+		messagingSenderId: "1099483426009"
+	};
+	firebase.initializeApp(config);
+</script>
 
 </html>

@@ -8,8 +8,9 @@ var EnemyDeath = require('./enemyDeath.js');
 
 var playGame = function (game) {};
 playGame.prototype = {
-    var: lv = 1,
+    // var: lv = 1,
     create: function () {
+        this.lv = 1;
         //建立背景
         this.createBackground();
         //循環背景音樂
@@ -17,7 +18,7 @@ playGame.prototype = {
         //加入音效
         this.addAudios();
         //建立地圖磚
-        this.createTileMap(lv);
+        this.createTileMap(this.lv);
         //增添裝飾用景物
         // this.decorWorld();
         //添加裝飾用景物，應該是前景

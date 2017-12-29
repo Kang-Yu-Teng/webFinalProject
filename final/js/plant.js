@@ -1,6 +1,6 @@
 // plant
 
-Plant = function (game, x, y) {
+var Plant = function (game, x, y) {
 	x *= 16;
 	y *= 16;
 

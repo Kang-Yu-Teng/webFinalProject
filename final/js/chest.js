@@ -1,4 +1,4 @@
-Chest = function (game, x, y, audioChest) {
+var Chest = function (game, x, y, audioChest) {
     x *= 16;
     y *= 16;
     this.opened = false;

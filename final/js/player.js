@@ -1,4 +1,4 @@
-Player = function (game, x, y) {
+var Player = function (game, x, y) {
     x *= 16;
     y *= 16;
     this.initX = x;
