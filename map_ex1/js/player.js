@@ -1,4 +1,4 @@
-Player = function (game, x, y) {
+var Player = function (game, x, y) {
     x *= 16;
     y *= 16;
     this.initX = x;
@@ -28,7 +28,7 @@ Player = function (game, x, y) {
     this.animations.play("idle");
     this.kind = "player";
     //將此物件指定給唯一一名的玩家
-    player = this;
+    // player = this;
 }
 Player.prototype = Object.create(Phaser.Sprite.prototype);
 Player.prototype.constructor = Player;

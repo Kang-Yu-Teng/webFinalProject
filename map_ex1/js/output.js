@@ -142,8 +142,10 @@ preload.prototype = {
 		game.load.image("collisions", "assets/environment/collisions.png");
 
 		//map
-		game.load.image("tileset", "assets/environment/tileset.png");
+
 		game.load.tilemap("map", "assets/maps/test.json", null, Phaser.Tilemap.TILED_JSON);
+		game.load.image("tileset", "assets/environment/tileset.png");
+		game.load.image("props", "assets/environment/props.png");
 		//
 
 		// atlas
@@ -157,6 +159,9 @@ preload.prototype = {
 		game.load.audio("jump", ["assets/sound/jump.ogg", "assets/sound/jump.mp3"]);
 		game.load.audio("star", ["assets/sound/star.ogg", "assets/sound/star.mp3"]);
 		game.load.audio("chest", ["assets/sound/chest.ogg", "assets/sound/chest.mp3"]);
+
+		//physic system
+		game.physics.startSystem(Phaser.Physics.ARCADE);
 
 	},
 	create: function () {
@@ -257,7 +262,7 @@ playGame.prototype = {
         //綁定按鍵
         this.bindKeys();
         //建立玩家
-        this.createPlayer(2, 9);
+        // this.createPlayer(2, 9);
         //建立星星
         // this.createStars();
         //建立蘿蔔
@@ -273,14 +278,16 @@ playGame.prototype = {
     update: function () {
         // physics
         //添加碰撞關係
-        game.physics.arcade.collide(enemies_group, this.layer_collisions);
-        game.physics.arcade.collide(chests_group, this.layer_collisions);
-        game.physics.arcade.collide(loot_group, this.layer_collisions);
+        // game.physics.arcade.collide(enemies_group, this.layer_collisions);
+        // game.physics.arcade.collide(chests_group, this.layer_collisions);
+        // game.physics.arcade.collide(loot_group, this.layer_collisions);
+
 
         //對存活狀態的角色做各種邏輯檢測
         if (player.alive) {
             //physics
-            game.physics.arcade.collide(player, this.layer_collisions);
+            game.physics.arcade.collide(this.layer_touched, player);
+            // game.physics.arcade.collide(player, this.layer_collisions);
             //overlaps
             game.physics.arcade.overlap(player, enemies_group, this.checkAgainstEnemies, null, this);
             game.physics.arcade.overlap(player, carrots_group, this.collectCarrot, null, this);
@@ -365,12 +372,12 @@ playGame.prototype = {
         }
     },
     parallaxBg: function () {
-        background.tilePosition.x = this.layer.x * -0.2;
-        middleground.tilePosition.x = this.layer.x * -0.5;
+        background.tilePosition.x = this.layer_touched.x * -0.2;
+        middleground.tilePosition.x = this.layer_touched.x * -0.5;
     },
     deathReset: function () {
         if (player.y > 16 * 60) {
-            // player.reset();
+            player.reset();
             this.music.stop();
             this.game.state.start("gameOver");
         }
@@ -455,41 +462,53 @@ playGame.prototype = {
         //tilemap那個參數是給當時load時指定出的名字，不是檔名
         globalMap = game.add.tilemap("map" + levelNum);
         //設置磚圖，應該對應當初編輯地圖時所使用的原始圖檔
+        globalMap.addTilesetImage("decTiled", "props");
         globalMap.addTilesetImage("sunny-land", "tileset");
+
+        this.layer_bg = globalMap.createLayer("background");
+        this.layer_mg = globalMap.createLayer("midground");
 
         //建立圖層
         //注意，那個層名要對應在tiled內設定的層名
+        //加入順序會影響顯示時的深度
+        this.layer_touched = globalMap.createLayer("touched");
+        this.createPlayer(2, 9);
+        this.layer_fg = globalMap.createLayer("frontground");
 
-        this.layer = globalMap.createLayer("touched");
-
-
-        // collisions
-        //根據陣列磚類設置碰撞磚，磚類在Tiled編輯器中能看到ID
-        // globalMap.setCollision([1]);
-        globalMap.setCollision(collisionTiledID);
-
-        //位所有磚類=2的設置上側碰撞(此為自訂函式)
-        this.setTopCollisionTiles(ladderTopID);
+        game.physics.arcade.enable(this.layer_touched);
+        //setcollision需設於createlayer之後
+        //根據陣列磚類設置碰撞磚，磚類在Tiled編輯器中能看到ID,但是該編輯器輸出時會自動+1，因此要id+1
+        globalMap.setCollision(collisionTiledID, true, this.layer_touched);
+        //位所有磚類=?的設置上側碰撞(此為自訂函式)
+        //設置上碰撞和爬梯子的動作有衝突,BUG
+        this.setTopCollisionTiles(ladderTopID, this.layer_touched);
+        //debug test
+        // this.setTopCollisionTiles(collisionTiledID, this.layer);
+        // this.setTopCollisionTiles(149, this.layer);
 
         // specific tiles for enemies
         //設置對應磚類而碰撞觸發的函式
         // globalMap.setTileIndexCallback(3, this.enemyCollide, this);
-        globalMap.setTileIndexCallback(ladderID, this.triggerLadder, this);
-        globalMap.setTileIndexCallback(ladderTopID, this.triggerLadder, this);
-        globalMap.setTileIndexCallback(deadBlockID, this.killZone, this);
+        globalMap.setTileIndexCallback(ladderID, this.triggerLadder, this, this.layer_touched);
+        globalMap.setTileIndexCallback(ladderTopID, this.triggerLadder, this, this.layer_touched);
+        globalMap.setTileIndexCallback(deadBlockID, this.killZone, this, this.layer_touched);
+        globalMap.setTileIndexCallback(exitZoneID, this.exitZone, this, this.layer_touched);
         // globalMap.setTileIndexCallback(8, this.exitZone, this);
 
         //Sets the world size to match the size of this layer.
-        this.layer.resizeWorld();
-        // this.layer_collisions.resizeWorld();
+        this.layer_touched.scale.set(1);
+        this.layer_touched.resizeWorld();
+
+
+
 
     },
     //為glovalMap的範圍內所有磚塊為所有等於titleIndex設置上側碰撞
-    setTopCollisionTiles: function (tileIndex) {
+    setTopCollisionTiles: function (tileIndex, layer) {
         var x, y, tile;
         for (x = 0; x < globalMap.width; x++) {
             for (y = 1; y < globalMap.height; y++) {
-                tile = globalMap.getTile(x, y);
+                tile = globalMap.getTile(x, y, layer);
                 if (tile !== null) {
                     //判斷陣列或是一般值後開始設定對應的ID
                     if (Array.isArray(tileIndex) == true) {
@@ -576,8 +595,8 @@ playGame.prototype = {
         );
     },
     createPlayer: function (x, y) {
-        var temp = new Player(game, x, y);
-        game.add.existing(temp);
+        player = new Player(game, x, y);
+        game.add.existing(player);
     },
     createCarrots: function () {
 
@@ -788,7 +807,7 @@ Player = function (game, x, y) {
     this.animations.play("idle");
     this.kind = "player";
     //將此物件指定給唯一一名的玩家
-    player = this;
+    // player = this;
 }
 Player.prototype = Object.create(Phaser.Sprite.prototype);
 Player.prototype.constructor = Player;

@@ -1,0 +1,12 @@
+{ "columns":20,
+ "image":"..\/..\/resource_pack\/sunny-land-files\/Sunny-land-files\/PNG\/environment\/layers\/tileset.png",
+ "imageheight":192,
+ "imagewidth":320,
+ "margin":0,
+ "name":"sunny-land",
+ "spacing":0,
+ "tilecount":240,
+ "tileheight":16,
+ "tilewidth":16,
+ "type":"tileset"
+}

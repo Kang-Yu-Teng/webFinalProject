@@ -1,0 +1,12 @@
+{ "columns":34,
+ "image":"..\/..\/resource_pack\/sunny-land-files\/Sunny-land-files\/PNG\/environment\/layers\/props.png",
+ "imageheight":256,
+ "imagewidth":544,
+ "margin":0,
+ "name":"decTiled",
+ "spacing":0,
+ "tilecount":544,
+ "tileheight":16,
+ "tilewidth":16,
+ "type":"tileset"
+}
