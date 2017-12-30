@@ -3,15 +3,17 @@ var Bee = function (game, x, y, distance, horizontal) {
     // Enemy.apply(this);
     // Enemy.call(this);
 
-    x *= 16;
-    y *= 16;
+    // x *= 16;
+    // y *= 16;
 
     Phaser.Sprite.call(this, game, x, y, "atlas", "bee/bee-1");
     this.animations.add('fly', Phaser.Animation.generateFrameNames('bee/bee-', 1, 8, '', 0), 15, true);
     this.animations.play("fly");
     this.anchor.setTo(0.5);
+
     game.physics.arcade.enable(this);
-    this.body.setSize(15, 18, 11, 13);
+    //設定物理大小，寬 高 x偏移 y偏移
+    this.body.setSize(20, 20, 11, 13);
     this.initX = this.x;
     this.initY = this.y;
     this.distance = distance;

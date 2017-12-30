@@ -53,19 +53,59 @@
 	<script src="js/output.js"></script>
 
 
+	<h2>註冊</h2>
+	<lable for="account"></lable>
+	<input id="account" type="text" placeholder="信箱">
+
+	<lable for="pwd"></lable>
+	<input id="pwd" type="password" placeholder="密碼">
+
+	<label for="name"></label>
+	<input id="name" type="text" placeholder="玩家名字">
+
+	<button type="submit" id="registerSmtBtn">Signup</button>
+
+	<h2>登入</h2>
+	<lable for="accountL"></lable>
+	<input id="accountL" type="text">
+	<lable for="pwdL"></lable>
+	<input id="pwdL" type="password">
+	<button type="submit" id="loginSmtBtn">Login</button>
+
+	<h2>登出</h2>
+	<button id="signoutSmtBtn">Signout</button>
+
+	<h2>電子郵件驗證</h2>
+	<button id="verifyBtn">Verify</button>
+
+	<h2>更改密碼</h2>
+	<label for="chgPwd">Email</label>
+	<input id="chgPwd" type="text">
+	<button id="chgPwdBtn">ChangePwd</button>
+
+	<h2>刪除使用者</h2>
+	<button id="delUserBtn">Delete</button>
+
+	<h2>取得現在使用者資訊</h2>
+	<h4 id="userInfo"></h4>
+	<button id="userInfoBtn">Get</button>
+
+	<h2>刪除使用者的所有分數</h2>
+	<button id="delUserInfoBtn">Delete</button>
+
+	<h2>加入一筆分數</h2>
+	<label>分數</label>
+	<input id="score" type="text">
+	<button type="submit" id="scoreSmtBtn">Add</button>
+
+	<h2>取得現在使用者所有分數</h2>
+	<h4 id="scoreList">使用者分數</h4>
+	<button id="scoreListBtn">Get</button>
+
+
+
 </body>
 <script src="https://www.gstatic.com/firebasejs/4.8.1/firebase.js"></script>
-<script>
-	// Initialize Firebase
-	var config = {
-		apiKey: "AIzaSyD47cEGPxHO5ddXtiUUX4zUqgv-C9IPRp8",
-		authDomain: "marioaccount-3f175.firebaseapp.com",
-		databaseURL: "https://marioaccount-3f175.firebaseio.com",
-		projectId: "marioaccount-3f175",
-		storageBucket: "",
-		messagingSenderId: "1099483426009"
-	};
-	firebase.initializeApp(config);
-</script>
+<script src="js/firebase.js"></script>
 
 </html>

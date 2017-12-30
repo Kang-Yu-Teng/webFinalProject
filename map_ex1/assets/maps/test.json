@@ -2,7 +2,7 @@
  "layers":[
         {
          "draworder":"topdown",
-         "name":"\u7269\u4ef6\u5c64 1",
+         "name":"object",
          "objects":[
                 {
                  "gid":180,
@@ -42,7 +42,7 @@
                 }],
          "opacity":1,
          "type":"objectgroup",
-         "visible":false,
+         "visible":true,
          "x":0,
          "y":0
         }, 
@@ -52,7 +52,7 @@
          "name":"background",
          "opacity":1,
          "type":"tilelayer",
-         "visible":false,
+         "visible":true,
          "width":50,
          "x":0,
          "y":0
@@ -85,7 +85,7 @@
          "name":"frontground",
          "opacity":1,
          "type":"tilelayer",
-         "visible":false,
+         "visible":true,
          "width":50,
          "x":0,
          "y":0

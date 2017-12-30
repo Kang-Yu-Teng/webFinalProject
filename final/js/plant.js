@@ -1,8 +1,8 @@
 // plant
 
 var Plant = function (game, x, y) {
-	x *= 16;
-	y *= 16;
+	// x *= 16;
+	// y *= 16;
 
 	Phaser.Sprite.call(this, game, x, y, "atlas", "piranha-plant/piranha-plant-1");
 	this.animations.add('idle', Phaser.Animation.generateFrameNames('piranha-plant/piranha-plant-', 1, 5, '', 0), 10, true);

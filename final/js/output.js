@@ -75,7 +75,7 @@ var boot = __webpack_require__(1);
 var preload = __webpack_require__(2);
 var titleScreen = __webpack_require__(3);
 var playGame = __webpack_require__(4);
-var gameOver = __webpack_require__(12);
+var gameOver = __webpack_require__(20);
 // require('./globalVar.js');
 window.onload = function () {
 	game = new Phaser.Game(gameWidth, gameHeight, Phaser.AUTO, "");
@@ -152,7 +152,7 @@ preload.prototype = {
 
 		//map
 
-		game.load.tilemap("map", "assets/maps/test.json", null, Phaser.Tilemap.TILED_JSON);
+		game.load.tilemap("map", "assets/maps/newMap.json", null, Phaser.Tilemap.TILED_JSON);
 		game.load.image("tileset", "assets/environment/tileset.png");
 		game.load.image("props", "assets/environment/props.png");
 		//
@@ -248,12 +248,8 @@ module.exports = titleScreen;
 
 
 var Player = __webpack_require__(5);
-var Bee = __webpack_require__(6);
-var Plant = __webpack_require__(7);
-var Slug = __webpack_require__(8);
-var Chest = __webpack_require__(9);
-var Star = __webpack_require__(10);
-var EnemyDeath = __webpack_require__(11);
+var Library = __webpack_require__(6);
+new Library();
 
 var playGame = function playGame(game) {};
 playGame.prototype = {
@@ -266,24 +262,10 @@ playGame.prototype = {
         this.startMusic();
         //加入音效
         this.addAudios();
-        //建立地圖磚
+        //建立地圖與物件
         this.createTileMap(this.lv);
-        //增添裝飾用景物
-        // this.decorWorld();
-        //添加裝飾用景物，應該是前景
-        // this.decorWorldFront();
-        //添加群組
-        this.createGroups();
         //綁定按鍵
         this.bindKeys();
-        //建立玩家
-        // this.createPlayer(2, 9);
-        //建立星星
-        // this.createStars();
-        //建立蘿蔔
-        // this.createCarrots();
-        //設定相機跟隨對象
-        this.camFollow(player);
         //生成hud(血條物件)
         this.createHud();
         //生成物件群
@@ -292,10 +274,10 @@ playGame.prototype = {
     update: function update() {
         // physics
         //添加碰撞關係
-        // game.physics.arcade.collide(enemies_group, this.layer_collisions);
-        // game.physics.arcade.collide(chests_group, this.layer_collisions);
-        // game.physics.arcade.collide(loot_group, this.layer_collisions);
-
+        // game.physics.arcade.collide(enemies_group, this.layer_touched);
+        game.physics.arcade.collide(this.layer_touched, enemies_group);
+        game.physics.arcade.collide(chests_group, this.layer_touched);
+        game.physics.arcade.collide(loot_group, this.layer_touched);
 
         //對存活狀態的角色做各種邏輯檢測
         if (player.alive) {
@@ -311,7 +293,7 @@ playGame.prototype = {
         }
 
         //
-        this.movePlayer();
+        this.move("player", "normal");
         this.parallaxBg();
         this.hurtManager();
         this.deathReset();
@@ -319,62 +301,8 @@ playGame.prototype = {
         this.updateHealthHud();
         // this.debugGame();
     },
-    movePlayer: function movePlayer() {
-        if (!player.alive) {
-            player.animations.play("hurt");
-            return;
-        }
-
-        if (hurtFlag) {
-            player.animations.play("hurt");
-            return;
-        }
-
-        if (player.onLadder) {
-            player.animations.play("climb");
-
-            var vel = 30;
-            if (this.wasd.duck.isDown) {
-                player.body.velocity.y = vel;
-            } else if (this.wasd.up.isDown) {
-                player.body.velocity.y = -vel;
-            }
-
-            //horizontal
-
-            if (this.wasd.left.isDown) {
-                player.body.velocity.x = -vel;
-
-                player.scale.x = -1;
-            } else if (this.wasd.right.isDown) {
-                player.body.velocity.x = vel;
-
-                player.scale.x = 1;
-            } else {
-                player.body.velocity.x = 0;
-            }
-
-            return;
-        }
-
-        if (this.wasd.jump.isDown && player.body.onFloor()) {
-            player.body.velocity.y = -200;
-            this.audioJump.play();
-        }
-
-        var vel = 80;
-        if (this.wasd.left.isDown) {
-            player.body.velocity.x = -vel;
-            this.moveAnimation();
-            player.scale.x = -1;
-        } else if (this.wasd.right.isDown) {
-            player.body.velocity.x = vel;
-            this.moveAnimation();
-            player.scale.x = 1;
-        } else {
-            player.body.velocity.x = 0;
-            this.stillAnimation();
-        }
+    move: function move(target, method) {
+        Library.move(target, method)(this);
     },
     hurtManager: function hurtManager() {
         if (hurtFlag && this.game.time.totalElapsedSeconds() > 0.3) {
@@ -404,7 +332,16 @@ playGame.prototype = {
         player.y -= 5;
 
         player.body.velocity.y = -150;
-        player.body.velocity.x = player.scale.x == 1 ? -22 : 22;
+
+        //依據玩家面朝方向，側向彈飛
+        //plaer.scale.x是自訂參數
+        if (player.scale.x == 1) {
+            player.body.velocity.x = -220;
+        } else if (player.scale.x == -1) {
+            player.body.velocity.x = 220;
+        }
+        // player.body.velocity.x = (player.scale.x == 1) ? -22 : 22;
+
         player.health--;
 
         this.audioHurt.play();
@@ -473,14 +410,31 @@ playGame.prototype = {
         globalMap.addTilesetImage("decTiled", "props");
         globalMap.addTilesetImage("sunny-land", "tileset");
 
-        this.layer_bg = globalMap.createLayer("background");
-        this.layer_mg = globalMap.createLayer("midground");
-
         //建立圖層
         //注意，那個層名要對應在tiled內設定的層名
         //加入順序會影響顯示時的深度
+        this.layer_bg = globalMap.createLayer("background");
+        this.layer_mg = globalMap.createLayer("midground");
         this.layer_touched = globalMap.createLayer("touched");
+        //添加群組(在此決定了群組的深度)
+        this.createGroups();
+        //建立星星
+        this.createStars();
+        //建立蘿蔔
+        this.createCarrots();
+        //建立玩家
         this.createPlayer(2, 9);
+        //設定相機跟隨對象
+        this.camFollow(player);
+        //建立蜜蜂
+        this.createBees();
+        //建立蝸牛
+        this.createSlugs();
+        //建立植物
+        this.createPlants();
+        //建立箱子
+        this.createChests();
+
         this.layer_fg = globalMap.createLayer("frontground");
 
         game.physics.arcade.enable(this.layer_touched);
@@ -530,35 +484,6 @@ playGame.prototype = {
             }
         }
     },
-    decorWorld: function decorWorld() {
-        this.addProp(1, 0.2, 'tree');
-        this.addProp(11, 10.3, 'mushroom-red');
-        this.addProp(3, 0, 'vine');
-        this.addProp(25, 0, 'vine');
-        this.addProp(17, 11, 'mushroom-brown');
-        this.addProp(120, 0.2, 'tree');
-        this.addProp(146, 2.7, 'house');
-
-        this.addProp(130, 0, 'vine');
-        this.addProp(136, 0, 'vine');
-
-        this.addProp(144, 11.3, 'mushroom-red');
-
-        this.addProp(140, 11.3, 'mushroom-brown');
-    },
-    decorWorldFront: function decorWorldFront() {
-
-        this.addProp(16, 12.7, 'rock');
-        this.addProp(2, 12, 'plant');
-        this.addProp(23, 12, 'plant');
-        this.addProp(53, 11.7, 'rock');
-
-        this.addProp(150, 12, 'plant');
-        this.addProp(152, 12, 'plant');
-        this.addProp(143, 12, 'plant');
-        this.addProp(119, 12, 'plant');
-        this.addProp(122, 12.5, 'rock');
-    },
     addProp: function addProp(x, y, item) {
         game.add.image(x * 16, y * 16, 'atlas-props', item);
     },
@@ -577,6 +502,8 @@ playGame.prototype = {
         //
         stars_group = game.add.group();
         stars_group.enableBody = true;
+        //
+        player_group = game.add.group();
     },
     bindKeys: function bindKeys() {
         this.wasd = {
@@ -591,10 +518,15 @@ playGame.prototype = {
     createPlayer: function createPlayer(x, y) {
         player = new Player(game, x, y);
         game.add.existing(player);
+        player_group.add(player);
     },
     createCarrots: function createCarrots() {
 
-        globalMap.createFromObjects("Object Layer", 6, "atlas", 0, true, false, carrots_group);
+        //這是對應json裡的 物件層 物件名
+        globalMap.createFromObjects("object", "carrot", "atlas", 0, true, false, carrots_group);
+        // this.layer_touched.createFromObjects("object", "carrot", "atlas", 0, true, false, carrots_group);
+
+        // globalMap.createFromObjects("object", 6, "atlas", 0, true, false, carrots_group);
 
         // add animation to all items
         carrots_group.callAll('animations.add', 'animations', 'spin', ['carrot/carrot-1', 'carrot/carrot-2', 'carrot/carrot-3', 'carrot/carrot-4'], 7, true);
@@ -602,10 +534,44 @@ playGame.prototype = {
     },
     createStars: function createStars() {
 
-        globalMap.createFromObjects("Object Layer", 7, "atlas", 0, true, false, stars_group);
+        globalMap.createFromObjects("object", "star", "atlas", 0, true, false, stars_group);
+        // globalMap.createFromObjects("object", 20, "atlas", 0, true, false, stars_group);
         // add animations
         stars_group.callAll("animations.add", "animations", "spin-star", ["star/star-1", "star/star-2", "star/star-3", "star/star-4",, "star/star-5",, "star/star-6"], 10, true);
         stars_group.callAll("animations.play", "animations", "spin-star");
+    },
+    createBees: function createBees() {
+        // globalMap.createFromObjects("object", "bee", null, true, false, enemies_group, new Bee(game, 0, 0));
+        var args = {};
+        args.distance = 30;
+        args.horizontal = true;
+        this.createFromObjectsLocation(globalMap, "object", "bee", Library.spawn("bee", "normal"), args, enemies_group);
+    },
+    createSlugs: function createSlugs() {
+        // globalMap.createFromObjects("object", "bee", null, true, false, enemies_group, new Bee(game, 0, 0));
+        var args = {};
+        this.createFromObjectsLocation(globalMap, "object", "slug", Library.spawn("slug", "normal"), args, enemies_group);
+    },
+    createPlants: function createPlants() {
+        // globalMap.createFromObjects("object", "bee", null, true, false, enemies_group, new Bee(game, 0, 0));
+        var args = {};
+        this.createFromObjectsLocation(globalMap, "object", "plant", Library.spawn("plant", "normal"), args, enemies_group);
+    },
+    createChests: function createChests() {
+        // globalMap.createFromObjects("object", "bee", null, true, false, enemies_group, new Bee(game, 0, 0));
+        var args = {};
+        this.createFromObjectsLocation(globalMap, "object", "chest", Library.spawn("chest", "normal"), args, chests_group);
+    },
+    createFromObjectsLocation: function createFromObjectsLocation(map, layerName, name, spawn, args, group) {
+        if (spawn == null || spawn == undefined) {
+            console.log(name, "spawn null");
+        }
+        var sprite;
+        for (var index = 0, len = map.objects[layerName].length; index < len; index++) {
+            if (map.objects[layerName][index].name == name) {
+                spawn(map.objects[layerName][index].x, map.objects[layerName][index].y, args, group);
+            }
+        }
     },
     createHud: function createHud() {
         this.hud = game.add.sprite(10, 10, "atlas", "hud/hud-4");
@@ -689,7 +655,8 @@ playGame.prototype = {
             enemy.kill();
             enemy.destroy();
             this.audioEnemyDeath.play();
-            this.spawnEnemyDeath(enemy.x, enemy.y);
+            Library.spawn("EnemyDeath", "normal")(enemy.x, enemy.y);
+            // this.spawnEnemyDeath(enemy.x, enemy.y);
             player.body.velocity.y = -300;
         } else {
             this.hurtPlayer();
@@ -701,59 +668,75 @@ playGame.prototype = {
             chest.open();
             this.audioChest.play();
         }
-    },
-    populate: function populate() {
-        // this.spawnSlug(5, 10);
-        this.spawnSlug(12, 10);
-        this.spawnSlug(18, 12);
-        this.spawnSlug(31, 2);
-        this.spawnBee(33, 10, 20);
-        this.spawnPlant(42, 10);
-        this.spawnBee(48, 10, 30, true);
-        this.spawnBee(60, 10, 30);
-        this.spawnPlant(64, 5);
+    }
+    // populate: function () {
 
-        this.spawnChest(71, 10);
-        this.spawnChest(32, 21);
+    //     // this.spawnSlug(5, 10);
+    //     this.spawnSlug(12, 10);
+    //     this.spawnSlug(18, 12);
+    //     this.spawnSlug(31, 2);
+    //     this.spawnBee(33, 10, 20);
+    //     this.spawnPlant(42, 10);
+    //     this.spawnBee(48, 10, 30, true);
+    //     this.spawnBee(60, 10, 30);
+    //     this.spawnPlant(64, 5);
 
-        this.spawnSlug(93, 21);
-        this.spawnPlant(101, 20);
-        this.spawnBee(111, 9, 30, true);
-        this.spawnPlant(100, 7);
+    //     this.spawnChest(71, 10);
+    //     this.spawnChest(32, 21);
 
-        this.spawnSlug(73, 21);
-        this.spawnSlug(83, 21);
+    //     this.spawnSlug(93, 21);
+    //     this.spawnPlant(101, 20);
+    //     this.spawnBee(111, 9, 30, true);
+    //     this.spawnPlant(100, 7);
 
-        this.spawnSlug(129, 11);
-        this.spawnSlug(132, 11);
+    //     this.spawnSlug(73, 21);
+    //     this.spawnSlug(83, 21);
 
-        this.spawnBee(142, 9, 30, false);
-    },
-    spawnSlug: function spawnSlug(x, y) {
-        var temp = new Slug(game, x, y);
-        game.add.existing(temp);
-        enemies_group.add(temp);
-    },
-    spawnBee: function spawnBee(x, y, distance, horizontal) {
-        var temp = new Bee(game, x, y, distance, horizontal);
-        game.add.existing(temp);
-        enemies_group.add(temp);
-    },
-    spawnPlant: function spawnPlant(x, y) {
-        var temp = new Plant(game, x, y);
-        game.add.existing(temp);
-        enemies_group.add(temp);
-    },
-    spawnChest: function spawnChest(x, y) {
-        var temp = new Chest(game, x, y);
-        game.add.existing(temp);
-        chests_group.add(temp);
-    },
-    spawnEnemyDeath: function spawnEnemyDeath(x, y) {
-        var temp = new EnemyDeath(game, x, y);
-        game.add.existing(temp);
-    },
-    enemyFactory: function enemyFactory() {}
+    //     this.spawnSlug(129, 11);
+    //     this.spawnSlug(132, 11);
+
+    //     this.spawnBee(142, 9, 30, false);
+
+    // },
+    // spawnSlug: function (x, y, args, group) {
+    //     var temp = new Slug(game, x, y);
+    //     game.add.existing(temp);
+    //     // enemies_group.add(temp);
+    //     if (group != null) {
+    //         group.add(temp);
+    //     }
+    // },
+    // spawnBee: function (x, y, args, group) {
+    //     var temp = new Bee(game, x, y, args.distance, args.horizonta);
+    //     game.add.existing(temp);
+    //     // enemies_group.add(temp);
+    //     if (group != null) {
+    //         group.add(temp);
+    //     }
+    // },
+    // spawnPlant: function (x, y, args, group) {
+    //     var temp = new Plant(game, x, y);
+    //     game.add.existing(temp);
+    //     //enemies_group.add(temp);
+    //     if (group != null) {
+    //         group.add(temp);
+    //     }
+    // },
+    // spawnChest: function (x, y, args, group) {
+    //     var temp = new Chest(game, x, y);
+    //     game.add.existing(temp);
+    //     //chests_group.add(temp);
+    //     if (group != null) {
+    //         group.add(temp);
+    //     }
+    // },
+    // spawnEnemyDeath: function (x, y, args, group) {
+    //     var temp = new EnemyDeath(game, x, y);
+    //     game.add.existing(temp);
+    //     if (group != null) {
+    //         group.add(temp);
+    //     }
+    // }
 };
 module.exports = playGame;
 
@@ -830,20 +813,96 @@ module.exports = Player;
 "use strict";
 
 
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var SpawnBee = __webpack_require__(7);
+var SpawnSlug = __webpack_require__(9);
+var SpawnPlant = __webpack_require__(11);
+var SpawnChest = __webpack_require__(13);
+var SpawnEnemyDeath = __webpack_require__(16);
+
+var PlayerNormalMove = __webpack_require__(18);
+var PlayerFastMove = __webpack_require__(19);
+
+module.exports = function Library() {
+	_classCallCheck(this, Library);
+
+	Library.spawn = function (target, method) {
+		var choose = {
+			bee: {
+				normal: SpawnBee
+			},
+			slug: {
+				normal: SpawnSlug
+			},
+			plant: {
+				normal: SpawnPlant
+			},
+			chest: {
+				normal: SpawnChest
+			},
+			EnemyDeath: {
+				normal: SpawnEnemyDeath
+			}
+		};
+		return choose[target][method];
+	};
+	Library.move = function (target, method) {
+		var choose = {
+			player: {
+				normal: PlayerNormalMove,
+				fast: PlayerFastMove
+			}
+		};
+		return choose[target][method];
+	};
+};
+
+/***/ }),
+/* 7 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var Target = __webpack_require__(8);
+module.exports = function (x, y, args, group) {
+	var temp;
+	if (args == null) {
+		temp = new Target(game, x, y, 0, true);
+	} else {
+		temp = new Target(game, x, y, args.distance, args.horizonta);
+	}
+	game.add.existing(temp);
+
+	// enemies_group.add(temp);
+	if (group != null) {
+		group.add(temp);
+	}
+};
+
+/***/ }),
+/* 8 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
 var Bee = function Bee(game, x, y, distance, horizontal) {
 
     // Enemy.apply(this);
     // Enemy.call(this);
 
-    x *= 16;
-    y *= 16;
+    // x *= 16;
+    // y *= 16;
 
     Phaser.Sprite.call(this, game, x, y, "atlas", "bee/bee-1");
     this.animations.add('fly', Phaser.Animation.generateFrameNames('bee/bee-', 1, 8, '', 0), 15, true);
     this.animations.play("fly");
     this.anchor.setTo(0.5);
+
     game.physics.arcade.enable(this);
-    this.body.setSize(15, 18, 11, 13);
+    this.body.setSize(20, 20, 11, 13);
     this.initX = this.x;
     this.initY = this.y;
     this.distance = distance;
@@ -894,59 +953,33 @@ Bee.prototype.horizontalMove = function () {
 module.exports = Bee;
 
 /***/ }),
-/* 7 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-// plant
-
-var Plant = function Plant(game, x, y) {
-	x *= 16;
-	y *= 16;
-
-	Phaser.Sprite.call(this, game, x, y, "atlas", "piranha-plant/piranha-plant-1");
-	this.animations.add('idle', Phaser.Animation.generateFrameNames('piranha-plant/piranha-plant-', 1, 5, '', 0), 10, true);
-	this.animations.add('attack', Phaser.Animation.generateFrameNames('piranha-plant-attack/piranha-plant-attack-', 1, 4, '', 0), 10, true);
-	this.animations.play("idle");
-	this.anchor.setTo(0.5);
-	game.physics.arcade.enable(this);
-	this.body.gravity.y = 500;
-	//this.body.setSize(18, 29, 21, 16);
-	this.body.setSize(61, 29, 0, 16);
-};
-Plant.prototype = Object.create(Phaser.Sprite.prototype);
-Plant.prototype.constructor = Plant;
-Plant.prototype.update = function () {
-
-	if (this.x > player.x) {
-		this.scale.x = 1;
-	} else {
-		this.scale.x = -1;
-	}
-
-	var distance = game.physics.arcade.distanceBetween(this, player);
-
-	if (distance < 65) {
-		this.animations.play("attack");
-	} else {
-		this.animations.play("idle");
+var Target = __webpack_require__(10);
+module.exports = function (x, y, args, group) {
+	var temp;
+	temp = new Target(game, x, y);
+	game.add.existing(temp);
+	// enemies_group.add(temp);
+	if (group != null) {
+		group.add(temp);
 	}
 };
-
-module.exports = Plant;
 
 /***/ }),
-/* 8 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 var Slug = function Slug(game, x, y) {
-    x *= 16;
-    y *= 16;
+    // x *= 16;
+    // y *= 16;
     Phaser.Sprite.call(this, game, x, y, "atlas", "slug/slug-1");
     this.animations.add('crawl', Phaser.Animation.generateFrameNames('slug/slug-', 1, 4, '', 0), 10, true);
     this.animations.play("crawl");
@@ -981,15 +1014,96 @@ Slug.prototype.turnAround = function () {
 module.exports = Slug;
 
 /***/ }),
-/* 9 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
+var Target = __webpack_require__(12);
+module.exports = function (x, y, args, group) {
+	var temp;
+	temp = new Target(game, x, y);
+	game.add.existing(temp);
+	// enemies_group.add(temp);
+	if (group != null) {
+		group.add(temp);
+	}
+};
+
+/***/ }),
+/* 12 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+// plant
+
+var Plant = function Plant(game, x, y) {
+	// x *= 16;
+	// y *= 16;
+
+	Phaser.Sprite.call(this, game, x, y, "atlas", "piranha-plant/piranha-plant-1");
+	this.animations.add('idle', Phaser.Animation.generateFrameNames('piranha-plant/piranha-plant-', 1, 5, '', 0), 10, true);
+	this.animations.add('attack', Phaser.Animation.generateFrameNames('piranha-plant-attack/piranha-plant-attack-', 1, 4, '', 0), 10, true);
+	this.animations.play("idle");
+	this.anchor.setTo(0.5);
+	game.physics.arcade.enable(this);
+	this.body.gravity.y = 500;
+	//this.body.setSize(18, 29, 21, 16);
+	this.body.setSize(61, 29, 0, 16);
+};
+Plant.prototype = Object.create(Phaser.Sprite.prototype);
+Plant.prototype.constructor = Plant;
+Plant.prototype.update = function () {
+
+	if (this.x > player.x) {
+		this.scale.x = 1;
+	} else {
+		this.scale.x = -1;
+	}
+
+	var distance = game.physics.arcade.distanceBetween(this, player);
+
+	if (distance < 65) {
+		this.animations.play("attack");
+	} else {
+		this.animations.play("idle");
+	}
+};
+
+module.exports = Plant;
+
+/***/ }),
+/* 13 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var Target = __webpack_require__(14);
+module.exports = function (x, y, args, group) {
+	var temp;
+	temp = new Target(game, x, y);
+	game.add.existing(temp);
+	// enemies_group.add(temp);
+	if (group != null) {
+		group.add(temp);
+	}
+};
+
+/***/ }),
+/* 14 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var Star = __webpack_require__(15);
 var Chest = function Chest(game, x, y, audioChest) {
-    x *= 16;
-    y *= 16;
+    // x *= 16;
+    // y *= 16;
     this.opened = false;
     Phaser.Sprite.call(this, game, x, y, "atlas", "chest/chest-1");
     this.animations.add('open', ["chest/chest-2"], 0, false);
@@ -1009,7 +1123,7 @@ Chest.prototype.open = function () {
 
     //spawn stars
     for (var i = 0; i <= 5; i++) {
-        var temp = new Star(game, this.x / 16, (this.y - 15) / 16);
+        var temp = new Star(game, this.x, this.y - 15);
         game.add.existing(temp);
         loot_group.add(temp);
     }
@@ -1018,15 +1132,15 @@ Chest.prototype.open = function () {
 module.exports = Chest;
 
 /***/ }),
-/* 10 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 var Star = function Star(game, x, y) {
-    x *= 16;
-    y *= 16;
+    // x *= 16;
+    // y *= 16;
     this.able = false;
     this.bounceCount = 0;
     Phaser.Sprite.call(this, game, x, y, "atlas", "star/star-1");
@@ -1058,7 +1172,25 @@ Star.prototype.update = function () {
 module.exports = Star;
 
 /***/ }),
-/* 11 */
+/* 16 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var Target = __webpack_require__(17);
+module.exports = function (x, y, args, group) {
+	var temp;
+	temp = new Target(game, x, y);
+	game.add.existing(temp);
+	// enemies_group.add(temp);
+	if (group != null) {
+		group.add(temp);
+	}
+};
+
+/***/ }),
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1080,7 +1212,146 @@ EnemyDeath.prototype.constructor = EnemyDeath;
 module.exports = EnemyDeath;
 
 /***/ }),
-/* 12 */
+/* 18 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+module.exports = function (playgame) {
+	if (!player.alive) {
+		player.animations.play("hurt");
+		return;
+	}
+
+	if (hurtFlag) {
+		player.animations.play("hurt");
+		return;
+	}
+
+	if (player.onLadder) {
+		player.animations.play("climb");
+
+		var vel = 30;
+		if (playgame.wasd.duck.isDown) {
+			player.body.velocity.y = vel;
+		} else if (playgame.wasd.up.isDown) {
+			player.body.velocity.y = -vel;
+		}
+
+		//horizontal
+
+		if (playgame.wasd.left.isDown) {
+			player.body.velocity.x = -vel;
+
+			player.scale.x = -1;
+		} else if (playgame.wasd.right.isDown) {
+			player.body.velocity.x = vel;
+
+			player.scale.x = 1;
+		} else {
+			player.body.velocity.x = 0;
+		}
+
+		return;
+	}
+
+	if (playgame.wasd.jump.isDown && player.body.onFloor()) {
+		player.body.velocity.y = -200;
+		playgame.audioJump.play();
+	}
+
+	var vel = 80;
+	if (playgame.wasd.left.isDown) {
+		player.body.velocity.x = -vel;
+		playgame.moveAnimation();
+		player.scale.x = -1;
+	} else if (playgame.wasd.right.isDown) {
+		player.body.velocity.x = vel;
+		playgame.moveAnimation();
+		player.scale.x = 1;
+	} else {
+		player.body.velocity.x = 0;
+		playgame.stillAnimation();
+	}
+	// if (player.scale.x == 1) {
+	// 	console.log("->");
+	// }
+	// if (player.scale.x == -1) {
+	// 	console.log("<-");
+	// }
+};
+
+/***/ }),
+/* 19 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+module.exports = function (playgame) {
+
+	var rate = 1.5;
+
+	if (!player.alive) {
+		player.animations.play("hurt");
+		return;
+	}
+
+	if (hurtFlag) {
+		player.animations.play("hurt");
+		return;
+	}
+
+	if (player.onLadder) {
+		player.animations.play("climb");
+
+		var vel = 30 * rate;
+		if (playgame.wasd.duck.isDown) {
+			player.body.velocity.y = vel;
+		} else if (playgame.wasd.up.isDown) {
+			player.body.velocity.y = -vel;
+		}
+
+		//horizontal
+
+		if (playgame.wasd.left.isDown) {
+			player.body.velocity.x = -vel;
+
+			player.scale.x = -1;
+		} else if (playgame.wasd.right.isDown) {
+			player.body.velocity.x = vel;
+
+			player.scale.x = 1;
+		} else {
+			player.body.velocity.x = 0;
+		}
+
+		return;
+	}
+
+	if (playgame.wasd.jump.isDown && player.body.onFloor()) {
+		player.body.velocity.y = -200;
+		playgame.audioJump.play();
+	}
+
+	var vel = 80 * rate;
+	if (playgame.wasd.left.isDown) {
+		player.body.velocity.x = -vel;
+		playgame.moveAnimation();
+		player.scale.x = -1;
+	} else if (playgame.wasd.right.isDown) {
+		player.body.velocity.x = vel;
+		playgame.moveAnimation();
+		player.scale.x = 1;
+	} else {
+		player.body.velocity.x = 0;
+		playgame.stillAnimation();
+	}
+};
+
+/***/ }),
+/* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";

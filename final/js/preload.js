@@ -24,7 +24,7 @@ preload.prototype = {
 
 		//map
 
-		game.load.tilemap("map", "assets/maps/test.json", null, Phaser.Tilemap.TILED_JSON);
+		game.load.tilemap("map", "assets/maps/newMap.json", null, Phaser.Tilemap.TILED_JSON);
 		game.load.image("tileset", "assets/environment/tileset.png");
 		game.load.image("props", "assets/environment/props.png");
 		//

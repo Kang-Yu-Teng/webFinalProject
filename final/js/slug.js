@@ -1,6 +1,6 @@
 var Slug = function (game, x, y) {
-    x *= 16;
-    y *= 16;
+    // x *= 16;
+    // y *= 16;
     Phaser.Sprite.call(this, game, x, y, "atlas", "slug/slug-1");
     this.animations.add('crawl', Phaser.Animation.generateFrameNames('slug/slug-', 1, 4, '', 0), 10, true);
     this.animations.play("crawl");

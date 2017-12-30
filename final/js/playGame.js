@@ -1,10 +1,6 @@
 var Player = require('./player.js');
-var Bee = require('./bee.js');
-var Plant = require('./plant.js');
-var Slug = require('./slug.js');
-var Chest = require('./chest.js');
-var Star = require('./star.js');
-var EnemyDeath = require('./enemyDeath.js');
+var Library = require('./library.js');
+new Library();
 
 var playGame = function (game) {};
 playGame.prototype = {
@@ -17,24 +13,10 @@ playGame.prototype = {
         this.startMusic();
         //加入音效
         this.addAudios();
-        //建立地圖磚
+        //建立地圖與物件
         this.createTileMap(this.lv);
-        //增添裝飾用景物
-        // this.decorWorld();
-        //添加裝飾用景物，應該是前景
-        // this.decorWorldFront();
-        //添加群組
-        this.createGroups();
         //綁定按鍵
         this.bindKeys();
-        //建立玩家
-        // this.createPlayer(2, 9);
-        //建立星星
-        // this.createStars();
-        //建立蘿蔔
-        // this.createCarrots();
-        //設定相機跟隨對象
-        this.camFollow(player);
         //生成hud(血條物件)
         this.createHud();
         //生成物件群
@@ -44,9 +26,10 @@ playGame.prototype = {
     update: function () {
         // physics
         //添加碰撞關係
-        // game.physics.arcade.collide(enemies_group, this.layer_collisions);
-        // game.physics.arcade.collide(chests_group, this.layer_collisions);
-        // game.physics.arcade.collide(loot_group, this.layer_collisions);
+        // game.physics.arcade.collide(enemies_group, this.layer_touched);
+        game.physics.arcade.collide(this.layer_touched, enemies_group);
+        game.physics.arcade.collide(chests_group, this.layer_touched);
+        game.physics.arcade.collide(loot_group, this.layer_touched);
 
 
         //對存活狀態的角色做各種邏輯檢測
@@ -63,7 +46,7 @@ playGame.prototype = {
         }
 
         //
-        this.movePlayer();
+        this.move("player", "normal");
         this.parallaxBg();
         this.hurtManager();
         this.deathReset();
@@ -72,65 +55,8 @@ playGame.prototype = {
         // this.debugGame();
 
     },
-    movePlayer: function () {
-        if (!player.alive) {
-            player.animations.play("hurt");
-            return;
-        }
-
-        if (hurtFlag) {
-            player.animations.play("hurt");
-            return;
-        }
-
-        if (player.onLadder) {
-            player.animations.play("climb");
-
-            var vel = 30;
-            if (this.wasd.duck.isDown) {
-                player.body.velocity.y = vel;
-            } else if (this.wasd.up.isDown) {
-                player.body.velocity.y = -vel;
-            }
-
-            //horizontal
-
-            if (this.wasd.left.isDown) {
-                player.body.velocity.x = -vel;
-
-                player.scale.x = -1;
-            } else if (this.wasd.right.isDown) {
-                player.body.velocity.x = vel;
-
-                player.scale.x = 1;
-            } else {
-                player.body.velocity.x = 0;
-
-            }
-
-            return;
-        }
-
-        if (this.wasd.jump.isDown && player.body.onFloor()) {
-            player.body.velocity.y = -200;
-            this.audioJump.play();
-
-        }
-
-        var vel = 80;
-        if (this.wasd.left.isDown) {
-            player.body.velocity.x = -vel;
-            this.moveAnimation();
-            player.scale.x = -1;
-        } else if (this.wasd.right.isDown) {
-            player.body.velocity.x = vel;
-            this.moveAnimation();
-            player.scale.x = 1;
-        } else {
-            player.body.velocity.x = 0;
-            this.stillAnimation();
-
-        }
+    move: function (target, method) {
+        Library.move(target, method)(this);
     },
     hurtManager: function () {
         if (hurtFlag && this.game.time.totalElapsedSeconds() > 0.3) {
@@ -160,7 +86,16 @@ playGame.prototype = {
         player.y -= 5;
 
         player.body.velocity.y = -150;
-        player.body.velocity.x = (player.scale.x == 1) ? -22 : 22;
+
+        //依據玩家面朝方向，側向彈飛
+        //plaer.scale.x是橫向縮放參數，+-互為鏡像
+        if (player.scale.x == 1) {
+            player.body.velocity.x = -220;
+        } else if (player.scale.x == -1) {
+            player.body.velocity.x = 220;
+        }
+        // player.body.velocity.x = (player.scale.x == 1) ? -22 : 22;
+
         player.health--;
 
         this.audioHurt.play();
@@ -231,19 +166,37 @@ playGame.prototype = {
         globalMap.addTilesetImage("decTiled", "props");
         globalMap.addTilesetImage("sunny-land", "tileset");
 
-        this.layer_bg = globalMap.createLayer("background");
-        this.layer_mg = globalMap.createLayer("midground");
 
         //建立圖層
         //注意，那個層名要對應在tiled內設定的層名
         //加入順序會影響顯示時的深度
+        this.layer_bg = globalMap.createLayer("background");
+        this.layer_mg = globalMap.createLayer("midground");
         this.layer_touched = globalMap.createLayer("touched");
+        //添加群組(在此決定了群組的深度)
+        this.createGroups();
+        //建立星星
+        this.createStars();
+        //建立蘿蔔
+        this.createCarrots();
+        //建立玩家
         this.createPlayer(2, 9);
+        //設定相機跟隨對象
+        this.camFollow(player);
+        //建立蜜蜂
+        this.createBees();
+        //建立蝸牛
+        this.createSlugs();
+        //建立植物
+        this.createPlants();
+        //建立箱子
+        this.createChests();
+
         this.layer_fg = globalMap.createLayer("frontground");
 
         game.physics.arcade.enable(this.layer_touched);
         //setcollision需設於createlayer之後
-        //根據陣列磚類設置碰撞磚，磚類在Tiled編輯器中能看到ID,但是該編輯器輸出時會自動+1，因此要id+1
+        //根據陣列磚類設置碰撞磚，磚類在Tiled編輯器中能看到ID,但是該編輯器輸出時會自動+1，因此要id+1，實際以json內的值為主
         globalMap.setCollision(collisionTiledID, true, this.layer_touched);
         //位所有磚類=?的設置上側碰撞(此為自訂函式)
         //設置上碰撞和爬梯子的動作有衝突,BUG
@@ -294,36 +247,6 @@ playGame.prototype = {
             }
         }
     },
-    decorWorld: function () {
-        this.addProp(1, 0.2, 'tree');
-        this.addProp(11, 10.3, 'mushroom-red');
-        this.addProp(3, 0, 'vine');
-        this.addProp(25, 0, 'vine');
-        this.addProp(17, 11, 'mushroom-brown');
-        this.addProp(120, 0.2, 'tree');
-        this.addProp(146, 2.7, 'house');
-
-        this.addProp(130, 0, 'vine');
-        this.addProp(136, 0, 'vine');
-
-        this.addProp(144, 11.3, 'mushroom-red');
-
-        this.addProp(140, 11.3, 'mushroom-brown');
-
-    },
-    decorWorldFront: function () {
-
-        this.addProp(16, 12.7, 'rock');
-        this.addProp(2, 12, 'plant');
-        this.addProp(23, 12, 'plant');
-        this.addProp(53, 11.7, 'rock');
-
-        this.addProp(150, 12, 'plant');
-        this.addProp(152, 12, 'plant');
-        this.addProp(143, 12, 'plant');
-        this.addProp(119, 12, 'plant');
-        this.addProp(122, 12.5, 'rock');
-    },
     addProp: function (x, y, item) {
         game.add.image(x * 16, y * 16, 'atlas-props', item);
     },
@@ -342,6 +265,9 @@ playGame.prototype = {
         //
         stars_group = game.add.group();
         stars_group.enableBody = true;
+        //
+        player_group = game.add.group();
+
     },
     bindKeys: function () {
         this.wasd = {
@@ -363,10 +289,15 @@ playGame.prototype = {
     createPlayer: function (x, y) {
         player = new Player(game, x, y);
         game.add.existing(player);
+        player_group.add(player);
     },
     createCarrots: function () {
 
-        globalMap.createFromObjects("Object Layer", 6, "atlas", 0, true, false, carrots_group);
+        //這是對應json裡的 物件層 物件名
+        globalMap.createFromObjects("object", "carrot", "atlas", 0, true, false, carrots_group);
+        // this.layer_touched.createFromObjects("object", "carrot", "atlas", 0, true, false, carrots_group);
+
+        // globalMap.createFromObjects("object", 6, "atlas", 0, true, false, carrots_group);
 
         // add animation to all items
         carrots_group.callAll('animations.add', 'animations', 'spin', ['carrot/carrot-1', 'carrot/carrot-2', 'carrot/carrot-3', 'carrot/carrot-4'], 7, true);
@@ -375,10 +306,45 @@ playGame.prototype = {
     },
     createStars: function () {
 
-        globalMap.createFromObjects("Object Layer", 7, "atlas", 0, true, false, stars_group);
+        globalMap.createFromObjects("object", "star", "atlas", 0, true, false, stars_group);
+        // globalMap.createFromObjects("object", 20, "atlas", 0, true, false, stars_group);
         // add animations
         stars_group.callAll("animations.add", "animations", "spin-star", ["star/star-1", "star/star-2", "star/star-3", "star/star-4", , "star/star-5", , "star/star-6"], 10, true);
         stars_group.callAll("animations.play", "animations", "spin-star");
+    },
+    createBees: function () {
+        // globalMap.createFromObjects("object", "bee", null, true, false, enemies_group, new Bee(game, 0, 0));
+        var args = {};
+        args.distance = 30;
+        args.horizontal = true;
+        this.createFromObjectsLocation(globalMap, "object", "bee", Library.spawn("bee", "normal"), args, enemies_group);
+    },
+    createSlugs: function () {
+        // globalMap.createFromObjects("object", "bee", null, true, false, enemies_group, new Bee(game, 0, 0));
+        var args = {};
+        this.createFromObjectsLocation(globalMap, "object", "slug", Library.spawn("slug", "normal"), args, enemies_group);
+    },
+    createPlants: function () {
+        // globalMap.createFromObjects("object", "bee", null, true, false, enemies_group, new Bee(game, 0, 0));
+        var args = {};
+        this.createFromObjectsLocation(globalMap, "object", "plant", Library.spawn("plant", "normal"), args, enemies_group);
+    },
+    createChests: function () {
+        // globalMap.createFromObjects("object", "bee", null, true, false, enemies_group, new Bee(game, 0, 0));
+        var args = {};
+        this.createFromObjectsLocation(globalMap, "object", "chest", Library.spawn("chest", "normal"), args, chests_group);
+    },
+    createFromObjectsLocation: function (map, layerName, name, spawn, args, group) {
+        if (spawn == null || spawn == undefined) {
+            console.log(name, "spawn null");
+        }
+        var sprite;
+        for (let index = 0, len = map.objects[layerName].length; index < len; index++) {
+            if (map.objects[layerName][index].name == name) {
+                spawn(map.objects[layerName][index].x, map.objects[layerName][index].y, args, group);
+            }
+        }
+
     },
     createHud: function () {
         this.hud = game.add.sprite(10, 10, "atlas", "hud/hud-4");
@@ -468,7 +434,8 @@ playGame.prototype = {
             enemy.kill();
             enemy.destroy();
             this.audioEnemyDeath.play();
-            this.spawnEnemyDeath(enemy.x, enemy.y);
+            Library.spawn("EnemyDeath", "normal")(enemy.x, enemy.y);
+            // this.spawnEnemyDeath(enemy.x, enemy.y);
             player.body.velocity.y = -300;
         } else {
             this.hurtPlayer();
@@ -481,60 +448,73 @@ playGame.prototype = {
             this.audioChest.play();
         }
     },
-    populate: function () {
-        // this.spawnSlug(5, 10);
-        this.spawnSlug(12, 10);
-        this.spawnSlug(18, 12);
-        this.spawnSlug(31, 2);
-        this.spawnBee(33, 10, 20);
-        this.spawnPlant(42, 10);
-        this.spawnBee(48, 10, 30, true);
-        this.spawnBee(60, 10, 30);
-        this.spawnPlant(64, 5);
+    // populate: function () {
 
-        this.spawnChest(71, 10);
-        this.spawnChest(32, 21);
+    //     // this.spawnSlug(5, 10);
+    //     this.spawnSlug(12, 10);
+    //     this.spawnSlug(18, 12);
+    //     this.spawnSlug(31, 2);
+    //     this.spawnBee(33, 10, 20);
+    //     this.spawnPlant(42, 10);
+    //     this.spawnBee(48, 10, 30, true);
+    //     this.spawnBee(60, 10, 30);
+    //     this.spawnPlant(64, 5);
 
-        this.spawnSlug(93, 21);
-        this.spawnPlant(101, 20);
-        this.spawnBee(111, 9, 30, true);
-        this.spawnPlant(100, 7);
+    //     this.spawnChest(71, 10);
+    //     this.spawnChest(32, 21);
 
-        this.spawnSlug(73, 21);
-        this.spawnSlug(83, 21);
+    //     this.spawnSlug(93, 21);
+    //     this.spawnPlant(101, 20);
+    //     this.spawnBee(111, 9, 30, true);
+    //     this.spawnPlant(100, 7);
 
-        this.spawnSlug(129, 11);
-        this.spawnSlug(132, 11);
+    //     this.spawnSlug(73, 21);
+    //     this.spawnSlug(83, 21);
 
-        this.spawnBee(142, 9, 30, false);
+    //     this.spawnSlug(129, 11);
+    //     this.spawnSlug(132, 11);
 
-    },
-    spawnSlug: function (x, y) {
-        var temp = new Slug(game, x, y);
-        game.add.existing(temp);
-        enemies_group.add(temp);
-    },
-    spawnBee: function (x, y, distance, horizontal) {
-        var temp = new Bee(game, x, y, distance, horizontal);
-        game.add.existing(temp);
-        enemies_group.add(temp);
-    },
-    spawnPlant: function (x, y) {
-        var temp = new Plant(game, x, y);
-        game.add.existing(temp);
-        enemies_group.add(temp);
-    },
-    spawnChest: function (x, y) {
-        var temp = new Chest(game, x, y);
-        game.add.existing(temp);
-        chests_group.add(temp);
-    },
-    spawnEnemyDeath: function (x, y) {
-        var temp = new EnemyDeath(game, x, y);
-        game.add.existing(temp);
-    },
-    enemyFactory: function () {
+    //     this.spawnBee(142, 9, 30, false);
 
-    }
+    // },
+    // spawnSlug: function (x, y, args, group) {
+    //     var temp = new Slug(game, x, y);
+    //     game.add.existing(temp);
+    //     // enemies_group.add(temp);
+    //     if (group != null) {
+    //         group.add(temp);
+    //     }
+    // },
+    // spawnBee: function (x, y, args, group) {
+    //     var temp = new Bee(game, x, y, args.distance, args.horizonta);
+    //     game.add.existing(temp);
+    //     // enemies_group.add(temp);
+    //     if (group != null) {
+    //         group.add(temp);
+    //     }
+    // },
+    // spawnPlant: function (x, y, args, group) {
+    //     var temp = new Plant(game, x, y);
+    //     game.add.existing(temp);
+    //     //enemies_group.add(temp);
+    //     if (group != null) {
+    //         group.add(temp);
+    //     }
+    // },
+    // spawnChest: function (x, y, args, group) {
+    //     var temp = new Chest(game, x, y);
+    //     game.add.existing(temp);
+    //     //chests_group.add(temp);
+    //     if (group != null) {
+    //         group.add(temp);
+    //     }
+    // },
+    // spawnEnemyDeath: function (x, y, args, group) {
+    //     var temp = new EnemyDeath(game, x, y);
+    //     game.add.existing(temp);
+    //     if (group != null) {
+    //         group.add(temp);
+    //     }
+    // }
 }
 module.exports = playGame;

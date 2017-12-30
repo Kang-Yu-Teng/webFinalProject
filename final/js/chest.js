@@ -1,6 +1,7 @@
+var Star = require("./star.js");
 var Chest = function (game, x, y, audioChest) {
-    x *= 16;
-    y *= 16;
+    // x *= 16;
+    // y *= 16;
     this.opened = false;
     Phaser.Sprite.call(this, game, x, y, "atlas", "chest/chest-1");
     this.animations.add('open', ["chest/chest-2"], 0, false);
@@ -21,7 +22,7 @@ Chest.prototype.open = function () {
 
     //spawn stars
     for (var i = 0; i <= 5; i++) {
-        var temp = new Star(game, this.x / 16, (this.y - 15) / 16);
+        var temp = new Star(game, this.x, (this.y - 15));
         game.add.existing(temp);
         loot_group.add(temp);
     }

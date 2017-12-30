@@ -12,6 +12,7 @@ var chests_group;
 var loot_group;
 var carrots_group;
 var stars_group;
+var player_group;
 var hurtFlag = false;
 var score = 0;
 

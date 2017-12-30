@@ -151,7 +151,12 @@ playGame.prototype = {
         player.y -= 5;
 
         player.body.velocity.y = -150;
-        player.body.velocity.x = (player.scale.x == 1) ? -22 : 22;
+        // player.body.velocity.x = (player.scale.x == 1) ? -220 : 220;
+        // if (player.body.touching.left) {
+        //     player.body.velocity.x = -220;
+        // } else if (player.body.touching.right) {
+        //     player.body.velocity.x = 220;
+        // }
         player.health--;
 
         this.audioHurt.play();

@@ -1,6 +1,6 @@
 var Star = function (game, x, y) {
-    x *= 16;
-    y *= 16;
+    // x *= 16;
+    // y *= 16;
     this.able = false;
     this.bounceCount = 0;
     Phaser.Sprite.call(this, game, x, y, "atlas", "star/star-1");

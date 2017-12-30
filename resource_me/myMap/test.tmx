@@ -1,16 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" tiledversion="1.0.3" orientation="orthogonal" renderorder="right-down" width="50" height="20" tilewidth="16" tileheight="16" nextobjectid="12">
+<map version="1.0" tiledversion="1.0.3" orientation="orthogonal" renderorder="right-down" width="50" height="20" tilewidth="16" tileheight="16" nextobjectid="55">
  <tileset firstgid="1" name="sunny-land" tilewidth="16" tileheight="16" tilecount="240" columns="20">
   <image source="../../map_ex1/img/PNG/environment/layers/tileset.png" width="320" height="192"/>
  </tileset>
  <tileset firstgid="241" name="decTiled" tilewidth="16" tileheight="16" tilecount="544" columns="34">
   <image source="../../map_ex1/img/PNG/environment/layers/props.png" width="544" height="256"/>
  </tileset>
- <objectgroup name="物件層 1">
-  <object id="9" name="enemy" gid="180" x="272" y="112" width="16" height="2.78887"/>
-  <object id="10" name="player" gid="180" x="32" y="176" width="16" height="16"/>
-  <object id="11" name="outArea" gid="180" x="480" y="256" width="-2.50078e-14" height="-2.4869e-14"/>
- </objectgroup>
+ <tileset firstgid="785" name="atlas" tilewidth="16" tileheight="16" tilecount="456" columns="8">
+  <image source="../../map_ex1/assets/atlas/atlas.png" width="128" height="921"/>
+ </tileset>
  <layer name="background" width="50" height="20">
   <data encoding="csv">
 158,158,158,158,158,158,158,158,158,158,158,158,158,158,158,158,158,158,158,158,158,158,158,158,158,158,158,158,158,158,158,158,158,158,158,158,158,158,158,158,158,158,158,158,158,158,158,158,158,158,
@@ -59,6 +57,19 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
+ <objectgroup color="#3c0000" name="object">
+  <object id="29" name="star" gid="198" x="84.8632" y="148.918" width="23" height="23"/>
+  <object id="30" name="star" gid="198" x="134.866" y="128.138" width="23" height="23"/>
+  <object id="31" name="star" gid="198" x="177.077" y="111.903" width="23" height="23"/>
+  <object id="40" name="carrot" gid="198" x="246.562" y="121.644" width="23" height="23"/>
+  <object id="41" name="carrot" gid="198" x="276.434" y="117.098" width="23" height="23"/>
+  <object id="46" name="star" gid="198" x="369.947" y="230" width="23" height="23"/>
+  <object id="47" name="star" gid="198" x="416.703" y="230" width="23" height="23"/>
+  <object id="48" name="bee" gid="198" x="334.23" y="182.037" width="32" height="32"/>
+  <object id="49" name="slug" gid="198" x="339.425" y="272.952" width="32" height="32"/>
+  <object id="51" name="plant" gid="198" x="112.138" y="170" width="16" height="16"/>
+  <object id="52" name="chest" gid="198" x="434.886" y="281.394" width="16" height="16"/>
+ </objectgroup>
  <layer name="touched" width="50" height="20">
   <data encoding="csv">
 149,149,149,149,149,149,149,149,149,149,149,149,149,149,149,149,149,149,149,149,149,149,149,149,149,149,149,149,149,149,149,149,149,149,149,149,149,149,149,149,149,149,149,149,149,149,149,149,149,149,
@@ -66,7 +77,7 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,149,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,149,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,149,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,4,4,149,149,149,0,0,0,149,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,149,149,149,149,149,0,0,0,149,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,24,0,0,0,0,149,0,0,0,149,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,24,0,0,0,0,149,0,0,0,149,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,24,0,0,0,0,149,0,0,0,149,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
